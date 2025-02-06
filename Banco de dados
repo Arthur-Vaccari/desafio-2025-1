@@ -1,0 +1,132 @@
+select * from `PESSOA`
+
+select * from `PESSOA_ENDERECO`
+
+select * from `CURSO`
+
+SELECT * FROM `CURSO_NOTA`
+
+SELECT * FROM `CURSO_PRESENCA`
+
+SELECT * FROM `PROFESSOR_CURSO`
+
+SELECT * FROM `ESTUDANTE_CURSO`
+
+SELECT * FROM `PERFIL`
+
+/*
+-- Inserir cadastro manual no banco
+INSERT INTO PESSOA (id, cpf, ativo, usuario, senha, nome, email, telefone, genero, data_nascimento, data_registro)
+VALUES (
+    1,
+    '115.953.589-27',
+    true,
+    'arthur2504',
+    '12345',
+    'Arthur Vaccari',
+    'arthurvaccari25@gmail.com',
+    '99114-2651',
+    'other',
+    '2006-04-25',
+    '2007-05-23'
+)
+*/
+
+
+-- Tabela PERFIL (Define os tipos de perfil e relaciona)
+CREATE TABLE PERFIL (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(20) NOT NULL UNIQUE  -- Aluno, Professor, Administrador
+);
+
+CREATE TABLE PESSOA_PERFIL (
+    pessoa_id BIGINT UNSIGNED NOT NULL,
+    perfil_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (pessoa_id, perfil_id),
+    FOREIGN KEY (pessoa_id) REFERENCES PESSOA(id) ON DELETE CASCADE,
+    FOREIGN KEY (perfil_id) REFERENCES PERFIL(id) ON DELETE CASCADE
+);
+
+INSERT INTO PERFIL (nome) VALUES ('Aluno');
+
+INSERT INTO PERFIL (nome) VALUES ('Professor');
+
+INSERT INTO PERFIL (nome) VALUES ('Administrador');
+
+-- Tabela PESSOA
+CREATE TABLE PESSOA (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    cpf VARCHAR(14) UNIQUE NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    usuario VARCHAR(50) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    telefone VARCHAR(20),
+    genero ENUM('masculino', 'feminino', 'outro') NOT NULL,
+    data_nascimento DATE,
+    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela PESSOA_ENDERECO
+CREATE TABLE PESSOA_ENDERECO (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    pessoa_id BIGINT UNSIGNED UNIQUE NOT NULL,
+    cidade VARCHAR(100) NOT NULL,
+    cep VARCHAR(20) NOT NULL,
+    bairro VARCHAR(50) NOT NULL,
+    rua VARCHAR(255) NOT NULL,
+    numero INT NOT NULL,
+    FOREIGN KEY (pessoa_id) REFERENCES PESSOA(id) ON DELETE CASCADE
+);
+
+-- Tabela CURSO
+CREATE TABLE CURSO (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) UNIQUE NOT NULL,
+    assunto VARCHAR(100) NOT NULL,
+    encontros INT NOT NULL,
+    status ENUM('ATIVO', 'INATIVO') DEFAULT 'ATIVO'
+);
+
+-- Tabela ESTUDANTE_CURSO
+CREATE TABLE ESTUDANTE_CURSO (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    estudante_id BIGINT UNSIGNED NOT NULL,
+    curso_id BIGINT UNSIGNED NOT NULL,
+    UNIQUE (estudante_id, curso_id),
+    FOREIGN KEY (estudante_id) REFERENCES PESSOA(id) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES CURSO(id) ON DELETE CASCADE
+);
+
+-- Tabela PROFESSOR_CURSO
+CREATE TABLE PROFESSOR_CURSO (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    professor_id BIGINT UNSIGNED NOT NULL,
+    curso_id BIGINT UNSIGNED NOT NULL,
+    UNIQUE (professor_id, curso_id),
+    FOREIGN KEY (professor_id) REFERENCES PESSOA(id) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES CURSO(id) ON DELETE CASCADE
+);
+
+-- Tabela CURSO_NOTA
+CREATE TABLE CURSO_NOTA (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    curso_id BIGINT UNSIGNED NOT NULL,
+    estudante_id BIGINT UNSIGNED NOT NULL,
+    nota DECIMAL(5,2) NOT NULL CHECK (nota >= 0 AND nota <= 10),
+    UNIQUE (curso_id, estudante_id, nota),
+    FOREIGN KEY (curso_id) REFERENCES CURSO(id) ON DELETE CASCADE,
+    FOREIGN KEY (estudante_id) REFERENCES ESTUDANTE_CURSO(id) ON DELETE CASCADE
+);
+
+-- Tabela CURSO_PRESENCA
+CREATE TABLE CURSO_PRESENCA (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    curso_id BIGINT UNSIGNED NOT NULL,
+    estudante_id BIGINT UNSIGNED NOT NULL,
+    data_presenca DATE NOT NULL,
+    UNIQUE (curso_id, estudante_id, data_presenca),
+    FOREIGN KEY (curso_id) REFERENCES CURSO(id) ON DELETE CASCADE,
+    FOREIGN KEY (estudante_id) REFERENCES ESTUDANTE_CURSO(id) ON DELETE CASCADE
+);
